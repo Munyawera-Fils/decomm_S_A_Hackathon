@@ -38,7 +38,10 @@
     rejected: [],
   };
 
-  const currencies = [{ value: "Knowledge Token", label: "Knowledge Token" }];
+  const currencies = [
+    { value: "Knowledge Token", label: "Knowledge Token" },
+    { value: "ICP", label: "ICP" }
+  ];
 
   const categories = [
     { value: "Electronics", label: "Electronics" },
@@ -160,6 +163,17 @@
           true,
           img,
         );
+      } else if (selectedCurrency === "ICP") {
+        await actorBackend.createProduct(
+          $fullName,
+          formName,
+          selectedCategory,
+          { currency: { icp: null }, amount: Number.parseInt(formPrice) },
+          formsDesc,
+          formlDesc,
+          true,
+          img,
+        );
       }
       toast.success("Product has been added", {
         description: getFormattedDateTime(),
@@ -214,7 +228,7 @@
       </p>
     </div>
     <div class="grid w-full max-w-sm items-center gap-1.5 mt-10">
-      <Label for="price">Category</Label>
+      <Label for="Category">Category</Label>
       <Select.Root
         onSelectedChange={(v) => {
           v && (selectedCategory = v.value);
@@ -233,14 +247,14 @@
             {/each}
           </Select.Group>
         </Select.Content>
-        <Select.Input name="favoriteFruit" />
+        <Select.Input name="category" />
       </Select.Root>
       <p class="text-sm text-muted-foreground">
         Enter the Category for your product.
       </p>
     </div>
     <div class="grid w-full max-w-sm items-center gap-1.5 mt-10">
-      <Label for="price">Currency</Label>
+      <Label for="Currency">Currency</Label>
       <Select.Root
         onSelectedChange={(v) => {
           v && (selectedCurrency = v.value);
@@ -259,10 +273,10 @@
             {/each}
           </Select.Group>
         </Select.Content>
-        <Select.Input name="favoriteFruit" />
+        <Select.Input name="currency" />
       </Select.Root>
       <p class="text-sm text-muted-foreground">
-        Enter the desired Currency you'd like to recieve for your sales.
+        Enter the desired Currency you'd like to receive for your sales.
       </p>
     </div>
     <div class="grid w-full max-w-sm items-center gap-1.5 mt-10">
@@ -272,6 +286,14 @@
           type="number"
           id="price"
           placeholder="120 KT"
+          bind:value={$form.price}
+          {...$constraints.price}
+        />
+      {:else if selectedCurrency === "ICP"}
+        <Input
+          type="number"
+          id="price"
+          placeholder="120 ICP"
           bind:value={$form.price}
           {...$constraints.price}
         />
@@ -295,13 +317,13 @@
       </p>
     </div>
     <div class="grid w-full gap-1.5 mt-10">
-      <Label for="lDesk">Full Description</Label>
+      <Label for="lDesc">Full Description</Label>
       <Textarea
         id="lDesc"
         name="lDesc"
         bind:value={$form.lDesc}
         {...$constraints.lDesc}
-        placeholder="A portable battery device that allows you to jump start your vehicle. These devices operate similar to jumnper cables but do not require an additional vehicle to provide the power needed to boost the dead vehicle battery. Jump starts using lead-acid batteries that have 1000 amp rating."
+        placeholder="A portable battery device that allows you to jump start your vehicle. These devices operate similar to jumper cables but do not require an additional vehicle to provide the power needed to boost the dead vehicle battery. Jump starts using lead-acid batteries that have 1000 amp rating."
       />
       <p class="text-sm text-muted-foreground">
         A longer description of the item you are trying to sell.

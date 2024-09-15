@@ -2,7 +2,7 @@
   import { Input } from "$lib/components/ui/input";
   import { Label } from "$lib/components/ui/label/index.js";
   import { Button } from "$lib/components/ui/button";
-  import BG from "$lib/images/bg-2.jpg";
+  import BG from "$lib/images/robots.jpeg";
   import {
     loggedIn,
     registerStore,

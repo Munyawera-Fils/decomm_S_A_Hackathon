@@ -6,6 +6,8 @@
   import { goto } from "$app/navigation";
   import { actorBackend } from "$lib/motokoImports/backend";
   import { onMount } from "svelte";
+  import { AuthClient } from "@dfinity/auth-client"; // Import the AuthClient
+  import { Principal } from "@dfinity/principal";
 
   let checkout = false;
   let buttonClicked = false;
@@ -14,11 +16,76 @@
   let formSubmitted = false;
   let formCleared = false;
   let totalCost = 0;
+  let isAuthenticated = false; // Track authentication status
+  let authClient: AuthClient | null = null; // Initialize auth client
 
   $: {
     if (converted.length > 0) {
       totalCost = total();
     }
+  }
+
+  // Initialize auth client on mount
+  onMount(async () => {
+    authClient = await AuthClient.create();
+    const isAuthenticatedResult = await authClient.isAuthenticated();
+    isAuthenticated = isAuthenticatedResult;
+    
+    if (isAuthenticated) {
+      // Load user data if authenticated
+      const resProduct = await actorBackend.getUserCartProductTypes($fullName);
+      converted = await convertBigIntToNumber(resProduct);
+      posts = true;
+    }
+  });
+
+  async function loginICPWallet() {
+  try {
+    if (!authClient) {
+      throw new Error("Auth client not initialized");
+    }
+    await authClient.login({
+      onSuccess: async () => {
+        isAuthenticated = true;
+        toast("Successfully connected to ICP Wallet");
+        // Add a redirect to NNS account if needed
+        window.location.href = "https://nns.ic0.app"; // Replace with the actual NNS URL if different
+      },
+      onError: (error) => {
+        toast.error("Failed to connect to ICP Wallet: " + error.message);
+      }
+    });
+  } catch (error) {
+    toast.error("An error occurred while logging in: " + error.message);
+  }
+}
+
+
+  async function payWithICPWallet() {
+    try {
+      if (!isAuthenticated) {
+        await loginICPWallet(); // Prompt user to log in if not authenticated
+      }
+      
+      // Assuming you have a function to process payment
+      const paymentResult = await processICPWalletPayment(totalCost);
+      if (paymentResult) {
+        toast("Payment successful with ICP Wallet");
+        await removeAllProducts();
+        checkout = false;
+        $cartPage.value = false;
+      } else {
+        toast.error("Payment failed. Please try again.");
+      }
+    } catch (error) {
+      toast.error("An error occurred during payment: " + error.message);
+    }
+  }
+
+  async function processICPWalletPayment(amount: number) {
+    // I will Implement  payment logic here
+    
+    return true; // Return payment result (true/false)
   }
 
   async function removeProduct(product) {
@@ -305,12 +372,17 @@
         <div class="col-span-12 my-2">
           Total Price of all products are <span class="font-bold"
             >{totalCost}</span
-          > KT
+          > 
         </div>
+
+
+
+        
         <div
           class="col-span-12 my-2 flex items-end justify-end place-items-end"
         >
           {#if !buttonClicked}
+          <Button class="icp-wallet-button" on:click={() => payWithICPWallet()}>Connect and Pay with ICP Wallet</Button>
             <Button on:click={() => purchase()}>Purchase</Button>
           {:else}
             <Button disabled>
@@ -334,4 +406,28 @@
     height: 20px;
     margin-right: 5px;
   }
+
+  .icp-wallet-button {
+    background-color: #1F7F92; /* Internet Computer brand color */
+    color: #FFFFFF; /* White text */
+    border: 2px solid #1F7F92; /* Border color */
+    border-radius: 8px; /* Rounded corners */
+    padding: 12px 24px; /* Padding for the button */
+    font-size: 16px; /* Font size */
+    font-weight: bold; /* Bold text */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s, border-color 0.3s; /* Smooth transition */
+  }
+
+  .icp-wallet-button:hover {
+    background-color: #146A7A; /* Darker shade on hover */
+    border-color: #146A7A; /* Darker shade on hover */
+  }
+
+  .icp-wallet-button:disabled {
+    background-color: #B0BEC5; /* Light gray for disabled */
+    border-color: #B0BEC5; /* Light gray for disabled */
+    cursor: not-allowed; /* Not-allowed cursor */
+  }
 </style>
+

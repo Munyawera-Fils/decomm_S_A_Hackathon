@@ -1,5 +1,10 @@
 # Pretoria South Africa Hackathon
+# What we have improved in this decom 
 
+https://docs.google.com/document/d/1TeaG40ABU2KAs95r08zs6XuZrdnvHSg4ZXfpOExw0jY/edit
+
+
+Please remember to to install  npm install @dfinity/auth-client to install authication for internet identity login we will use on checkout.
 ### Corruption Combat Coders
 
 Welcome to the Decomm (decentralized e-commerice) project and to the internet computer development community.
