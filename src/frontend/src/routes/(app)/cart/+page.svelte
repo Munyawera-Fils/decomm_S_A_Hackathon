@@ -88,6 +88,29 @@
     return true; // Return payment result (true/false)
   }
 
+  async function payWithNFTWallet() {
+  try {
+    // Assuming you have a function to process NFT payment
+    const nftPaymentResult = await processNFTWalletPayment(totalCost);
+    if (nftPaymentResult) {
+      toast("Payment successful with NFT Wallet");
+      await removeAllProducts();
+      checkout = false;
+      $cartPage.value = false;
+    } else {
+      toast.error("Payment failed. Please try again.");
+    }
+  } catch (error) {
+    toast.error("An error occurred during NFT payment: " + error.message);
+  }
+}
+
+async function processNFTWalletPayment(amount: number) {
+  // Implement your NFT payment logic here
+  return true; // Return payment result (true/false)
+}
+
+
   async function removeProduct(product) {
     try {
       formSubmitted = true;
@@ -355,12 +378,18 @@
       </div>
       <div class="col-span-12 mb-10">
         <h1 class="text-3xl font-semibold mb-5 lg:mb-0">Checkout</h1>
+
+        <!-- Banner Section -->
+    <div class="w-full h-24 bg-blue-500 flex items-center justify-center">
+      <h2 class="text-white text-xl font-bold">Your Advertisement banner Here</h2>
+    </div>
       </div>
       <div
         class="grid grid-cols-12 col-span-12 justify-center items-center border-[3px] border-gray-600 p-4"
       >
         {#each converted as product}
           <div class="col-span-12 my-2">
+            <img src={product.productPicture} alt={product.name} class="product-image" style="widht:100px; height:100px;" />
             {product.name}:
             {#each Object.keys(product.productPrice.currency) as currency}
               {#if product.productPrice.currency.hasOwnProperty(currency)}
@@ -382,8 +411,10 @@
           class="col-span-12 my-2 flex items-end justify-end place-items-end"
         >
           {#if !buttonClicked}
-          <Button class="icp-wallet-button" on:click={() => payWithICPWallet()}>Connect and Pay with ICP Wallet</Button>
-            <Button on:click={() => purchase()}>Purchase</Button>
+         
+          <Button class="icp-wallet-button" style="background-color: #00A3FF;" on:click={() => payWithICPWallet()}>Connect and Pay with ICP Wallet</Button>
+          <Button class="nft-wallet-button" style=" background-color: #ff4f00;"  on:click={payWithNFTWallet}>Pay with NFT Wallet</Button>
+            <!-- <Button on:click={() => purchase()}>Purchase</Button> -->
           {:else}
             <Button disabled>
               <Reload class="mr-2 h-4 w-4 animate-spin" />
@@ -429,5 +460,34 @@
     border-color: #B0BEC5; /* Light gray for disabled */
     cursor: not-allowed; /* Not-allowed cursor */
   }
+
+  .button-icp {
+  background-color: #00a3ff; /* Example color for ICP Wallet */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button-icp:hover {
+  background-color: #007bbd; /* Darker shade for hover effect */
+}
+
+.button-nft {
+  background-color: #ff4f00; /* Example color for NFT Wallet */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button-nft:hover {
+  background-color: #cc3e00; /* Darker shade for hover effect */
+}
+
 </style>
 

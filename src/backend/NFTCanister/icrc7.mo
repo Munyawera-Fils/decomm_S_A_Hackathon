@@ -20,6 +20,6 @@ module {
       supported_standards = null;
       tx_window = null;
       override = true;
-    };
+    }; 
   };
 };

@@ -4,11 +4,16 @@ import Cycles "mo:base/ExperimentalCycles";
 import Nat "mo:base/Nat";
 import Result "mo:base/Result";
 import Text "mo:base/Text";
+import Principal "mo:base/Principal";
 
 import Types "../commons/Types";
 import Product "Product";
 import Transaction "Transaction";
 import User "User";
+import ICRC7 = "../NFTCanister/icrc7"; // Adjust path based on your project structure
+
+
+
 
 //Actor
 actor class Main() {
