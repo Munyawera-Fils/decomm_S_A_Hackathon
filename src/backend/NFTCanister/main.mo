@@ -13,6 +13,7 @@ import CertTree "mo:cert/CertTree";
 import Fuzz "mo:fuzz";
 import ICRC7 "mo:icrc7-mo";
 import ICRC37 "mo:icrc37-mo";
+import Iter "mo:base/Iter";
 import ICRC3 "mo:icrc3-mo";
 
 import ICRC7Default "icrc7";
@@ -62,6 +63,10 @@ shared(_init_msg) actor class NFTact(_args : {
   type RevokeCollectionApprovalResult =         ICRC37.Service.RevokeCollectionApprovalResult;
 
   stable var init_msg = _init_msg; //preserves original initialization;
+
+  stable var user_wallets: [(Text, Principal)] = [];
+
+
 
   stable var icrc7_migration_state = ICRC7.init(
     ICRC7.initialState() , 
@@ -513,7 +518,6 @@ shared(_init_msg) actor class NFTact(_args : {
   
 // Define an array to hold user wallets as tuples (name, wallet)
     // Store user wallets as an array of tuples (name, wallet)
-    private var user_wallets: [(Text, Principal)] = [];
     public shared(msg) func nftacc(name: Text) : async Principal {
         // Check if the wallet already exists for the given name
         let existing_wallets = Array.filter<(Text, Principal)>(user_wallets, func(user_wallet) {
@@ -565,6 +569,7 @@ shared(_init_msg) actor class NFTact(_args : {
             case (_) D.trap("unknown");
         };
     };
+
    public shared func getBalanceByUsername(username: Text): async Nat {
         let user = await nftacc(username);
         let balance = icrc7().balance_of([{  owner = user; subaccount = null }]);
@@ -577,11 +582,23 @@ shared(_init_msg) actor class NFTact(_args : {
         return icrc7().tokens_of({ owner = wallet; subaccount = null },null,null);
     };
 
+    // ICRC-7 Endpoints
+    public shared (msg) func icrc7_mint<system>(tokens : ICRC7.SetNFTRequest) : async [ICRC7.SetNFTResult] {
+        let owner = Principal.fromActor(this);
+        D.print("Actor is MINTING: " # debug_show (owner));
+        D.print("MSG is MINTING : " # debug_show (msg.caller));
+        let result = icrc7().set_nfts<system>(icrc7().get_state().owner, tokens, true);
+        switch (result) {
+            case (#ok(val)) val;
+            case (#err(err)) D.trap(err);
+        };
+    };
+
     // transfer 
     public shared(msg) func nft_transfer_token(token_id: Nat, from: Text, to: Text) : async Nat {
         let from_wallet = await nftacc(from);
         let to_wallet = await nftacc(to);
-        switch(icrc7().transfer<system>(Principal.fromActor(this), [{
+        switch(icrc7().transfer<system>(from_wallet, [{
             from_subaccount = null;
             to = { owner = to_wallet; subaccount = null };
             token_id = token_id;
@@ -627,6 +644,8 @@ public shared (_msg) func payWithNFT(buyerName: Text, productID: Nat) : async Re
                             let buyerBalance = await getBalanceByUsername(buyerName);
                             let sellerBalance = await getBalanceByUsername(sellerName);
                             let productPrice = await product.getPrice();
+                            // price has : {amount : Nat; currency : Currency}
+                            let price = productPrice.amount;
 
                             // tokens of name
                             let buyerTokens = await nft_tokens_of(buyerName);
@@ -636,14 +655,32 @@ public shared (_msg) func payWithNFT(buyerName: Text, productID: Nat) : async Re
                             D.print("buyerTokens: " # debug_show(buyerTokens));
                             D.print("sellerTokens: " # debug_show(sellerTokens));
 
+                            // Check if the buyer has enough balance ()
+                            // get the buyer balance array size
+                            let buyerBalanceSize = Array.size(buyerTokens);
+                            let sellerBalanceSize = Array.size(sellerTokens);
+
+                            //display price 
+                            D.print("price: " # debug_show(price));
+                            D.print("buyerBalanceSize: " # debug_show(buyerBalanceSize));
+
                             // Check if the buyer has enough balance
-                            // if (buyerBalance < productPrice) {
-                            //     return #err("Insufficient balance");
-                            // };
+                            if ((not (buyerBalanceSize >= price))) {
+                                return #err("Insufficient funds");
+                            };
 
+                            // Transfer the token from the buyer to the seller
+                            var i = 0;
+                            for (j in Iter.range(0, (price-1))) {
+                                var token_id = buyerTokens[i];
+                                D.print("token_id to move: " # debug_show(i));
+                                var transferResult = await nft_transfer_token(token_id, buyerName, sellerName);
+                                // D.print(debug_show(transferResult));
+                                assert(j == i);
+                                i += 1;
+                            };
+                            assert(i == (price));
                             
-
-
 
                             return #ok(());
                         };
@@ -653,8 +690,80 @@ public shared (_msg) func payWithNFT(buyerName: Text, productID: Nat) : async Re
         };
     };
 };
-    
-    // payWithNFT updated
 
-  
+
+public shared(msg) func createAccountToken(
+    username: Text, 
+    name_: Text, 
+    description_: Text, 
+    url_: Text
+) : async Result.Result<Nat, Text> {
+    // Get the user's wallet principal using the username
+    let accountPrincipal = await nftacc(username);
+
+    // FOR TOKEN ID 
+    // Get the sum of all tokens and increment it to get the next token ID
+    var counter = await icrc7_total_supply();
+    counter += 1;
+    let nftData = [
+            {
+                name = name_;
+                description = description_;
+                url = url_;
+            }
+    ];
+
+    let mintRequests = Array.map<{ name : Text; description : Text; url : Text }, ICRC7.  SetNFTItemRequest>(
+        nftData,
+        func(data) {
+            let request : ICRC7.SetNFTItemRequest = {
+                token_id = counter;
+                owner = ?{
+                    owner = accountPrincipal;
+                    subaccount = null;
+                };
+                metadata = #Class([
+                    {
+                        name = "icrc7:metadata:uri:image";
+                        value = #Text(data.url);
+                        immutable = true;
+                    },
+                    {
+                        name = "name";
+                        value = #Text(data.name);
+                        immutable = true;
+                    },
+                    {
+                        name = "description";
+                        value = #Text(data.description);
+                        immutable = true;
+                    },
+                ]);
+                memo = ?Blob.fromArray([0, 1]);
+                override = true;
+                created_at_time = null;
+            };
+            request;
+        },
+    );
+
+    // Mint the new token
+
+    D.print("Actor is createAccountToken  : " # debug_show (Principal.fromActor(this)));
+    D.print("MSG is createAccountToken : " # debug_show (msg.caller));
+    let mintResult = await icrc7_mint(mintRequests);
+    for (result in mintResult.vals()) {
+        switch (result) {
+            case (#Ok(?_)) {};
+            case (#Ok(null)) {};
+            case (#Err(err)) return #err("Failed to mint NFT: " # debug_show (err));
+            case (#GenericError { error_code; message }) return #err("Generic error occurred: Code " # Nat.toText(error_code) # " - " # message);
+        };
+    };
+
+    // return ok
+    return #ok(counter);
+};
+
+
 };

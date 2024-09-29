@@ -5,6 +5,7 @@
   import Reload from "svelte-radix/Reload.svelte";
   import { goto } from "$app/navigation";
   import { actorBackend } from "$lib/motokoImports/backend";
+  import { actorNFT } from "$lib/motokoImports/nft";
   import { onMount } from "svelte";
   import { AuthClient } from "@dfinity/auth-client"; // Import the AuthClient
   import { Principal } from "@dfinity/principal";
@@ -101,13 +102,42 @@
       toast.error("Payment failed. Please try again.");
     }
   } catch (error) {
-    toast.error("An error occurred during NFT payment: " + error.message);
+    toast.error("An error occurred during NFT payment: ");
   }
 }
 
 async function processNFTWalletPayment(amount: number) {
-  // Implement your NFT payment logic here
-  return true; // Return payment result (true/false)
+  
+  try {
+      for (const product of converted) {
+        try {
+          buttonClicked = true;
+          const result = await actorNFT.payWithNFT(
+            $fullName,
+            product.productID,
+          );
+          buttonClicked = false;
+          if ("err" in result) {
+            throw new Error(result.err);
+          }
+          return true;
+        } catch (error) {
+          console.error("Error in NFT Payment:", error);
+          throw error;
+        }
+      }
+      await removeAllProducts();
+      checkout = false;
+      $cartPage.value = false;
+      toast("Items Purchased", { description: getFormattedDateTime() });
+    } catch (error) {
+      console.error("Error in purchase function:", error);
+      buttonClicked = false;
+      toast.error(
+        "There was an error purchasing all the products. Please try again: ",
+      );
+    }
+  return false; // Return payment result (true/false)
 }
 
 
