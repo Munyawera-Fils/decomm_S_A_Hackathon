@@ -130,7 +130,7 @@ async function processNFTWalletPayment(amount: number) {
       console.error("Error in purchase function:", error);
       buttonClicked = false;
       toast.error(
-        "There was an error purchasing all the products. Please try again: ",
+        "There was an error purchasing all the products. Please try again: "+error,
       );
     }
   return false; // Return payment result (true/false)
@@ -438,7 +438,7 @@ async function processNFTWalletPayment(amount: number) {
         >
           {#if !buttonClicked}
          
-          <Button class="icp-wallet-button" style="background-color: #00A3FF;" on:click={() => payWithICPWallet()}>Connect and Pay with ICP Wallet</Button>
+          <!-- <Button class="icp-wallet-button" style="background-color: #00A3FF;" on:click={() => payWithICPWallet()}>Connect and Pay with ICP Wallet</Button> -->
           <Button class="nft-wallet-button" style=" background-color: #ff4f00;"  on:click={payWithNFTWallet}>Pay with NFT Wallet</Button>
             <!-- <Button on:click={() => purchase()}>Purchase</Button> -->
           {:else}
