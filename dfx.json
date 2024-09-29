@@ -3,7 +3,7 @@
     "backend": {
       "main": "src/backend/main/main.mo",
       "type": "motoko",
-      "dependencies": ["fileUpload"]
+      "dependencies": ["fileUpload","NFT_canister"]
     },
     "fileUpload": {
       "main": "src/backend/uploadFile/Assets.mo",
@@ -23,8 +23,7 @@
     },
     "NFT_canister": {
       "main": "src/backend/NFTCanister/main.mo",
-      "type": "motoko",
-      "dependencies": ["backend"]
+      "type": "motoko"
     }
   },
   "defaults": {

@@ -109,27 +109,23 @@
 async function processNFTWalletPayment(amount: number) {
   
   try {
-      // for (const product of converted) {
-      //   try {
-      //     buttonClicked = true;
-      //     const result = await actorNFT.payWithNFT(
-      //       $fullName,
-      //       product.productID,
-      //     );
-      //     buttonClicked = false;
-      //     if ("err" in result) {
-      //       throw new Error(result.err);
-      //     }
-      //     return true;
-      //   } catch (error) {
-      //     console.error("Error in NFT Payment:", error);
-      //     throw error;
-      //   }
-      // }
-      await removeAllProducts();
-      checkout = false;
-      $cartPage.value = false;
-      toast("Items Purchased", { description: getFormattedDateTime() });
+      for (const product of converted) {
+        try {
+          buttonClicked = true;
+          const result = await actorBackend.payWithNFT(
+            $fullName,
+            product.productID,
+          );
+          buttonClicked = false;
+          if ("err" in result) {
+            throw new Error(result.err);
+          }
+          return true;
+        } catch (error) {
+          console.error("Error in NFT Payment:", error);
+          throw error;
+        }
+      }
     } catch (error) {
       console.error("Error in purchase function:", error);
       buttonClicked = false;
@@ -137,7 +133,7 @@ async function processNFTWalletPayment(amount: number) {
         "There was an error purchasing all the products. Please try again: ",
       );
     }
-  return true; // Return payment result (true/false)
+  return false; // Return payment result (true/false)
 }
 
 

@@ -1,4 +1,4 @@
-// import Main "canister:backend";
+import Main "canister:backend";
 import Array "mo:base/Array";
 import Buffer "mo:base/Buffer";
 import Vec "mo:vector";
@@ -612,7 +612,84 @@ shared(_init_msg) actor class NFTact(_args : {
     };
 
 
+    // nft payment
+    // Function for paying with an NFT
+public shared (_msg) func payWithNFT(buyerName: Text, productID: Nat) : async Result.Result<(), Text> {
+    // Get user object using the new method
+    let userObjOpt = await Main.getUserByName(buyerName);
 
+    switch (userObjOpt) {
+        case (null) {
+            return #err("User not found");
+        };
+        case (?userObj) {
+            let productResult = await Main.getProductById(productID);
+
+            switch (productResult) {
+                case (#err(errorMsg)) {
+                    return #err(errorMsg);
+                };
+                case (#ok(product)) {
+                    let sellerName = await product.getSellerID();
+                    let seller = await Main.getUserByName(sellerName);
+
+                    switch (seller) {
+                        case (null) {
+                            return #err("Seller not found");
+                        };
+                        case (?seller) {
+                            let buyerWallet = await nftacc(buyerName);
+                            let sellerWallet = await nftacc(sellerName);
+
+                            let buyerBalance = await getBalanceByUsername(buyerName);
+                            let sellerBalance = await getBalanceByUsername(sellerName);
+                            let productPrice = await product.getPrice();
+                            // price has : {amount : Nat; currency : Currency}
+                            let price = productPrice.amount;
+
+                            // tokens of name
+                            let buyerTokens = await nft_tokens_of(buyerName);
+                            let sellerTokens = await nft_tokens_of(sellerName);
+
+                            // check if user returned array and log it 
+                            D.print("buyerTokens: " # debug_show(buyerTokens));
+                            D.print("sellerTokens: " # debug_show(sellerTokens));
+
+                            // Check if the buyer has enough balance ()
+                            // get the buyer balance array size
+                            let buyerBalanceSize = Array.size(buyerTokens);
+                            let sellerBalanceSize = Array.size(sellerTokens);
+
+                            //display price 
+                            D.print("price: " # debug_show(price));
+                            D.print("buyerBalanceSize: " # debug_show(buyerBalanceSize));
+
+                            // Check if the buyer has enough balance
+                            if ((not (buyerBalanceSize >= price))) {
+                                return #err("Insufficient funds");
+                            };
+
+                            // Transfer the token from the buyer to the seller
+                            var i = 0;
+                            for (j in Iter.range(0, (price-1))) {
+                                var token_id = buyerTokens[i];
+                                D.print("token_id to move: " # debug_show(i));
+                                var transferResult = await nft_transfer_token(token_id, buyerName, sellerName);
+                                // D.print(debug_show(transferResult));
+                                assert(j == i);
+                                i += 1;
+                            };
+                            assert(i == (price));
+                            
+
+                            return #ok(());
+                        };
+                    };
+                };
+            };
+        };
+    };
+};
 
 
 public shared(msg) func createAccountToken(

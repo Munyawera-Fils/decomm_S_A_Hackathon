@@ -1,4 +1,3 @@
-import NFTact "canister:NFT_canister";
 import Buffer "mo:base/Buffer";
 import Debug "mo:base/Debug";
 import Cycles "mo:base/ExperimentalCycles";
@@ -6,15 +5,13 @@ import Nat "mo:base/Nat";
 import Result "mo:base/Result";
 import Text "mo:base/Text";
 import Principal "mo:base/Principal";
-import Array "mo:base/Array";
 
 import Types "../commons/Types";
 import Product "Product";
 import Transaction "Transaction";
 import User "User";
 import ICRC7 = "../NFTCanister/icrc7"; // Adjust path based on your project structure
-import D "mo:base/Debug";
-import Iter "mo:base/Iter";
+
 
 
 
@@ -442,84 +439,4 @@ actor class Main() {
         };
         null;
     };
-    // funct for public shared (_msg) func payWithNFT(buyerName: Text, productID: Nat) : async Result.Result<(), Text> {
-    // nft payment
-    // Function for paying with an NFT
-public shared (_msg) func payWithNFT(buyerName: Text, productID: Nat) : async Result.Result<(), Text> {
-    // Get user object using the new method
-    let userObjOpt = await getUserByName(buyerName);
-
-    switch (userObjOpt) {
-        case (null) {
-            return #err("User not found");
-        };
-        case (?userObj) {
-            let productResult = await getProductById(productID);
-
-            switch (productResult) {
-                case (#err(errorMsg)) {
-                    return #err(errorMsg);
-                };
-                case (#ok(product)) {
-                    let sellerName = await product.getSellerID();
-                    let seller = await getUserByName(sellerName);
-
-                    switch (seller) {
-                        case (null) {
-                            return #err("Seller not found");
-                        };
-                        case (?seller) {
-                            let buyerWallet = await NFTact.nftacc(buyerName);
-                            let sellerWallet = await NFTact.nftacc(sellerName);
-
-                            let buyerBalance = await NFTact.getBalanceByUsername(buyerName);
-                            let sellerBalance = await NFTact.getBalanceByUsername(sellerName);
-                            let productPrice = await product.getPrice();
-                            // price has : {amount : Nat; currency : Currency}
-                            let price = productPrice.amount;
-
-                            // tokens of name
-                            let buyerTokens = await NFTact.nft_tokens_of(buyerName);
-                            let sellerTokens = await NFTact.nft_tokens_of(sellerName);
-
-                            // check if user returned array and log it 
-                            D.print("buyerTokens: " # debug_show(buyerTokens));
-                            D.print("sellerTokens: " # debug_show(sellerTokens));
-
-                            // Check if the buyer has enough balance ()
-                            // get the buyer balance array size
-                            let buyerBalanceSize = Array.size(buyerTokens);
-                            let sellerBalanceSize = Array.size(sellerTokens);
-
-                            //display price 
-                            D.print("price: " # debug_show(price));
-                            D.print("buyerBalanceSize: " # debug_show(buyerBalanceSize));
-
-                            // Check if the buyer has enough balance
-                            if ((not (buyerBalanceSize >= price))) {
-                                return #err("Insufficient funds");
-                            };
-
-                            // Transfer the token from the buyer to the seller
-                            var i = 0;
-                            for (j in Iter.range(0, (price-1))) {
-                                var token_id = buyerTokens[i];
-                                D.print("token_id to move: " # debug_show(i));
-                                var transferResult = await NFTact.nft_transfer_token(token_id, buyerName, sellerName);
-                                // D.print(debug_show(transferResult));
-                                assert(j == i);
-                                i += 1;
-                            };
-                            assert(i == (price));
-                            
-
-                            return #ok(());
-                        };
-                    };
-                };
-            };
-        };
-    };
-};
-
 };
