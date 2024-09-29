@@ -5,7 +5,7 @@
   import Reload from "svelte-radix/Reload.svelte";
   import { goto } from "$app/navigation";
   import { actorBackend } from "$lib/motokoImports/backend";
-  import { actorNFT } from "$lib/motokoImports/nft";
+  // import { actorNFT } from "$lib/motokoImports/nft";
   import { onMount } from "svelte";
   import { AuthClient } from "@dfinity/auth-client"; // Import the AuthClient
   import { Principal } from "@dfinity/principal";
@@ -109,23 +109,23 @@
 async function processNFTWalletPayment(amount: number) {
   
   try {
-      for (const product of converted) {
-        try {
-          buttonClicked = true;
-          const result = await actorNFT.payWithNFT(
-            $fullName,
-            product.productID,
-          );
-          buttonClicked = false;
-          if ("err" in result) {
-            throw new Error(result.err);
-          }
-          return true;
-        } catch (error) {
-          console.error("Error in NFT Payment:", error);
-          throw error;
-        }
-      }
+      // for (const product of converted) {
+      //   try {
+      //     buttonClicked = true;
+      //     const result = await actorNFT.payWithNFT(
+      //       $fullName,
+      //       product.productID,
+      //     );
+      //     buttonClicked = false;
+      //     if ("err" in result) {
+      //       throw new Error(result.err);
+      //     }
+      //     return true;
+      //   } catch (error) {
+      //     console.error("Error in NFT Payment:", error);
+      //     throw error;
+      //   }
+      // }
       await removeAllProducts();
       checkout = false;
       $cartPage.value = false;
@@ -137,7 +137,7 @@ async function processNFTWalletPayment(amount: number) {
         "There was an error purchasing all the products. Please try again: ",
       );
     }
-  return false; // Return payment result (true/false)
+  return true; // Return payment result (true/false)
 }
 
 

@@ -7,6 +7,7 @@ const canisterIdFileUpload = import.meta.env.VITE_FILEUPLOAD_CANISTER_ID;
 const canisterHttpOutcall = import.meta.env.VITE_HTTPOUTCALLS_CANISTER_ID;
 const host = import.meta.env.VITE_HOST;
 
+
 const actorBackend = Backend(canisterIdBackEnd, { agentOptions: { host } });
 const actorFileUpload = fileUpload(canisterIdFileUpload, {
   agentOptions: { host },
