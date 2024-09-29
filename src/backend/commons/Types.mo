@@ -47,4 +47,5 @@ module Types {
         soldItems : [Transaction];
         wallet : [Types.Price];
     };
+    
 };

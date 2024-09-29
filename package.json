@@ -59,7 +59,7 @@
     "@melt-ui/svelte": "^0.83.0",
     "@sveltejs/adapter-auto": "^3.2.4",
     "@sveltejs/adapter-static": "^3.0.4",
-    "@sveltejs/kit": "^2.5.26",
+    "@sveltejs/kit": "^2.6.1",
     "@types/node": "^22.5.4",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.45",

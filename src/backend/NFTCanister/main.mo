@@ -585,4 +585,133 @@ shared (_init_msg) actor class NFTCanister(
         };
         _init := true;
     };
+    public shared (_msg) func createAndAddNftToUser(userName: Text, nftName: Text, nftDescription: Text, nftUrl: Text) : async Result.Result<(), Text> {
+        // 0. Find the user by their name
+        let user = await Main.getUserByName(userName);
+        switch (user) {
+            case (null) return #err("No user was found with that name");
+            case (?userRecord) {
+                let principal = await returnPrincipal(userRecord);
+
+                // 1. Create NFT metadata
+                let nftData = {
+                    name = nftName;
+                    description = nftDescription;
+                    url = nftUrl;
+                };
+
+                // 2. Prepare the mint request
+                let request : ICRC7.SetNFTItemRequest = {
+                    token_id = counter; // Ensure counter is managed properly in your context
+                    owner = ?{
+                        owner = principal; // NFT owner is the user
+                        subaccount = null;
+                    };
+                    metadata = #Class([
+                        {
+                            name = "icrc7:metadata:uri:image";
+                            value = #Text(nftUrl);
+                            immutable = true;
+                        },
+                        {
+                            name = "name";
+                            value = #Text(nftName);
+                            immutable = true;
+                        },
+                        {
+                            name = "description";
+                            value = #Text(nftDescription);
+                            immutable = true;
+                        },
+                    ]);
+                    memo = ?Blob.fromArray([0, 1]);
+                    override = true;
+                    created_at_time = null;
+                };
+
+                // 3. Mint the NFT
+                let mintResult = await icrc7_mint([request]);
+                switch (mintResult.vals()[0]) {
+                    case (#Ok(?_)) {};
+                    case (#Err(err)) return #err("Failed to mint NFT: " # debug_show (err));
+                    case (#GenericError { error_code; message }) return #err("Generic error occurred: Code " # Nat.toText(error_code) # " - " # message);
+                };
+
+                // 4. Optionally, you can increment the counter
+                counter += 1;
+
+                return #ok(); // NFT added successfully to the user
+            };
+        }
+    }
+
+    public shared (_msg) func payWithNFT(buyerName: Text, productID: Nat) : async Result.Result<(), Text> {
+        // Get user object using the new method
+        let userObjOpt = await Main.getUserByName(buyerName);
+
+        switch (userObjOpt) {
+            case (null) {
+                return #err("User not found");
+            };
+            case (?userObj) {
+                let productResult = await getProductById(productID);
+
+                switch (productResult) {
+                    case (#err(errorMsg)) {
+                        return #err(errorMsg);
+                    };
+                    case (#ok(product)) {
+                        let sellerName = await product.getSellerID();
+                        // seler principal
+                        let sellerPrincipal = await returnPrincipal(await Main.getUserByName(sellerName));
+
+                        // Fetch the buyer's principal using the updated method
+                        let buyerPrincipal = await returnPrincipal(userObj);
+
+                        // Check buyer's NFT balance to get available NFT IDs
+                        let nfts = await getNFTsByUser(buyerPrincipal);
+                        if (Array.size(nfts) == 0) {
+                            return #err("No NFTs available for payment");
+                        };
+
+                        // Assume we're taking the first NFT from the list for simplicity
+                        let nftID = nfts[0]; // Replace this logic as needed to select an appropriate NFT
+
+                        // NFT payment via ICRC7 transfer
+                        let transferArgs: Types.TransferArgs = {
+                            from = { principal = buyerPrincipal }; // Transfer from buyer
+                            to = { principal = sellerPrincipal }; // Transfer to seller
+                            tokenId = nftID;
+                        };
+                        let icrc7Result = await ICRC7.icrc7_transfer(transferArgs);
+
+                        switch (icrc7Result) {
+                            case (#ok(())) {
+                                // Successful transfer, now record the transaction
+                                let transaction = await createTransaction(productID, buyerName, {
+                                    currency = #kt;      // Using Knowledge Token (NFT)
+                                    amount = 1;          // 1 NFT
+                                });
+                                let transactionType = await convertTransactionToType(transaction);
+
+                                for (index in usersArray.vals()) {
+                                    let target = await index.getName();
+                                    if (Text.equal(target, sellerName)) {
+                                        await index.addToSoldItems(transactionType);
+                                        await userObj.addToPurchases(transactionType);
+                                        return #ok(()); // Successful purchase
+                                    };
+                                };
+                                return #err("Seller not found");
+                            };
+                            case (#err(errorMsg)) {
+                                return #err("NFT transfer failed: " # errorMsg);
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+
 };
