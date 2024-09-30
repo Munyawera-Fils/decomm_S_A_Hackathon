@@ -75,6 +75,9 @@
           ">After creating an account for the first Time, you get 100 NFTs to explore the platform
           services
         </p>
+        <p class="opacity-75
+          ">For Testing each product Must have a cost of Less than 10 NFTs
+        </p>
       </div>
     </div>   
   </div>
