@@ -98,6 +98,7 @@
       await removeAllProducts();
       checkout = false;
       $cartPage.value = false;
+      window.location.reload();
     } else {
       toast.error("Payment failed. Please try again.");
     }

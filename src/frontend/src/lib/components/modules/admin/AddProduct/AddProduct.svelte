@@ -39,8 +39,7 @@
   };
 
   const currencies = [
-    { value: "Knowledge Token", label: "Knowledge Token" },
-    { value: "ICP", label: "ICP" }
+    { value: "Knowledge Token", label: "Knowledge Token" }
   ];
 
   const categories = [
