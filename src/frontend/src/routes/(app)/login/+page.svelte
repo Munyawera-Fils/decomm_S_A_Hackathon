@@ -71,6 +71,22 @@
       class="absolute inset-0 bg-cover"
       style="background-image: url({BG});"
     ></div>
+    <!-- after creating account for the first time you get free 100 Nfts just to explore the platfrom services  -->
+     <!-- display that message  -->
+    <div class="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+      <div class="text-white text-center">
+        <h1 class="font-semibold text-2xl mb-2">Welcome to DeComm</h1>
+        <p class="opacity-75">
+          DeComm is a platform that allows you to buy & sell Online with NFTs
+        </p>
+        <p class="opacity-75
+          ">After creating an account for the first Time, you get 100 NFTs to explore the platform
+          services
+        </p>
+      </div>
+    </div>    
+
+
   </div>
   <div
     class="col-span-12 lg:col-span-6 w-full h-full flex justify-center items-center"

@@ -60,7 +60,6 @@
     $fullName = "";
     goto("/login");
   }
-
   async function pAccount() {
     $accountType.value = "Personal Account";
     await goto("/");
@@ -91,10 +90,15 @@
     sideNavBar = false;
     document.body.classList.toggle("nav-open", sideNavBar);
   }
-
+  //initialize balance
+  let balance = 0;
   onMount(async () => {
     const count = await actorBackend.getUserCartCount($fullName);
     $cart.value = Number(count);
+
+    
+    const response = await actorBackend.get_user_balance($fullName);
+    balance = response;
   });
 </script>
 
@@ -144,6 +148,15 @@
           >D&nbspE&nbspC&nbspO&nbspM&nbspM</a
         >
       </div>
+      
+
+      <!-- balance display  -->
+      <div class="ml-5 lg:ml-10">
+        <div class="flex items-center justify-center w-20 h-8 bg-zinc-100 border border-zinc-300 p-5 rounded-md">
+          <p class="text-xs lg:text-sm text-black">{balance} NFTs</p>
+        </div>  
+      </div>
+
     </div>
     <div
       class="col-span-8 lg:col-span-6 flex pl-5 lg:pl-0 lg:justify-center min-w-full justify-end"

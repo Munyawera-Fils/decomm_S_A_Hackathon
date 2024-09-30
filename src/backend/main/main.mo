@@ -106,11 +106,19 @@ actor class Main() {
         );
 
         await updateUserArray(user);
+        var init_with_tokens = await NFTact.initAccountWith(name,100);
+
         return user;
     };
     private func updateUserArray(user : User.User) : async () {
         userBuffer.add(user);
         usersArray := Buffer.toArray<User.User>(userBuffer);
+    };
+
+    // get_user_balance from NFTact.getBalanceByUsername
+    public shared func get_user_balance(username: Text): async Nat {
+        let balance = await NFTact.getBalanceByUsername(username);
+        return balance;
     };
 
     public func loginUser(name : Text) : async User.User {

@@ -615,78 +615,98 @@ shared(_init_msg) actor class NFTact(_args : {
 
 
 
-public shared(msg) func createAccountToken(
-    username: Text, 
-    name_: Text, 
-    description_: Text, 
-    url_: Text
-) : async Result.Result<Nat, Text> {
-    // Get the user's wallet principal using the username
-    let accountPrincipal = await nftacc(username);
+  public shared(msg) func createAccountToken(
+      username: Text, 
+      name_: Text, 
+      description_: Text, 
+      url_: Text
+  ) : async Result.Result<Nat, Text> {
+      // Get the user's wallet principal using the username
+      let accountPrincipal = await nftacc(username);
 
-    // FOR TOKEN ID 
-    // Get the sum of all tokens and increment it to get the next token ID
-    var counter = await icrc7_total_supply();
-    counter += 1;
-    let nftData = [
-            {
-                name = name_;
-                description = description_;
-                url = url_;
-            }
-    ];
+      // FOR TOKEN ID 
+      // Get the sum of all tokens and increment it to get the next token ID
+      var counter = await icrc7_total_supply();
+      counter += 1;
+      let nftData = [
+              {
+                  name = name_;
+                  description = description_;
+                  url = url_;
+              }
+      ];
 
-    let mintRequests = Array.map<{ name : Text; description : Text; url : Text }, ICRC7.  SetNFTItemRequest>(
-        nftData,
-        func(data) {
-            let request : ICRC7.SetNFTItemRequest = {
-                token_id = counter;
-                owner = ?{
-                    owner = accountPrincipal;
-                    subaccount = null;
-                };
-                metadata = #Class([
-                    {
-                        name = "icrc7:metadata:uri:image";
-                        value = #Text(data.url);
-                        immutable = true;
-                    },
-                    {
-                        name = "name";
-                        value = #Text(data.name);
-                        immutable = true;
-                    },
-                    {
-                        name = "description";
-                        value = #Text(data.description);
-                        immutable = true;
-                    },
-                ]);
-                memo = ?Blob.fromArray([0, 1]);
-                override = true;
-                created_at_time = null;
-            };
-            request;
-        },
-    );
+      let mintRequests = Array.map<{ name : Text; description : Text; url : Text }, ICRC7.  SetNFTItemRequest>(
+          nftData,
+          func(data) {
+              let request : ICRC7.SetNFTItemRequest = {
+                  token_id = counter;
+                  owner = ?{
+                      owner = accountPrincipal;
+                      subaccount = null;
+                  };
+                  metadata = #Class([
+                      {
+                          name = "icrc7:metadata:uri:image";
+                          value = #Text(data.url);
+                          immutable = true;
+                      },
+                      {
+                          name = "name";
+                          value = #Text(data.name);
+                          immutable = true;
+                      },
+                      {
+                          name = "description";
+                          value = #Text(data.description);
+                          immutable = true;
+                      },
+                  ]);
+                  memo = ?Blob.fromArray([0, 1]);
+                  override = true;
+                  created_at_time = null;
+              };
+              request;
+          },
+      );
 
-    // Mint the new token
+      // Mint the new token
 
-    D.print("Actor is createAccountToken  : " # debug_show (Principal.fromActor(this)));
-    D.print("MSG is createAccountToken : " # debug_show (msg.caller));
-    let mintResult = await icrc7_mint(mintRequests);
-    for (result in mintResult.vals()) {
-        switch (result) {
-            case (#Ok(?_)) {};
-            case (#Ok(null)) {};
-            case (#Err(err)) return #err("Failed to mint NFT: " # debug_show (err));
-            case (#GenericError { error_code; message }) return #err("Generic error occurred: Code " # Nat.toText(error_code) # " - " # message);
-        };
-    };
+      D.print("Actor is createAccountToken  : " # debug_show (Principal.fromActor(this)));
+      D.print("MSG is createAccountToken : " # debug_show (msg.caller));
+      let mintResult = await icrc7_mint(mintRequests);
+      for (result in mintResult.vals()) {
+          switch (result) {
+              case (#Ok(?_)) {};
+              case (#Ok(null)) {};
+              case (#Err(err)) return #err("Failed to mint NFT: " # debug_show (err));
+              case (#GenericError { error_code; message }) return #err("Generic error occurred: Code " # Nat.toText(error_code) # " - " # message);
+          };
+      };
 
-    // return ok
-    return #ok(counter);
-};
+      // return ok
+      return #ok(counter);
+  };
+
+  // create Account initial tokken (name = "Knowledge Token 1", description = "A collection of Knowledge Tokens for e-commerce1" url="https://knowledgefound.org/images/lightbulb-large.png?1")
+  // initAccountWith (username,number_oftokens)(use loop in creating them)
+  //in creating use the createAccountToken function
+  public shared(msg) func initAccountWith(username: Text, number_of_tokens: Nat) : async Result.Result<Nat, Text> {
+      let number_of_tokens_to_create = number_of_tokens;
+
+      //loop 
+      for (i in Iter.range(0, (number_of_tokens_to_create-1))) {
+          var name_ = "Knowledge Token " # Nat.toText(i) # username;
+          var description_ = "A collection of Knowledge Tokens for e-commerce " # Nat.toText(i);
+          var url_ = "https://knowledgefound.org/images/lightbulb-large.png?" # Nat.toText(i);
+          var result = await createAccountToken(username, name_, description_, url_);
+          switch (result) {
+              case (#ok(_)) {};
+              case (#err(err)) return #err("Failed to create account token: " # debug_show (err));
+          };
+      }; 
+      return #ok(number_of_tokens_to_create);
+  };
 
 
 };
