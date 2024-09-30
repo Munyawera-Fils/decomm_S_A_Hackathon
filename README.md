@@ -1,10 +1,17 @@
 # Pretoria South Africa Hackathon
-# What we have improved in this decom 
+# What we have improved in this decomm check this document 
 
 https://docs.google.com/document/d/1TeaG40ABU2KAs95r08zs6XuZrdnvHSg4ZXfpOExw0jY/edit
 
+# Testing Instructions:
+To facilitate your testing experience, if you create a new account, the system will automatically mint 20 NFTs to your account. This will enable you to test the payment functionality effectively. Please note that as the owner of the NFTs, you will see adjustments to both your account balance and the seller's account balance, which is displayed in the header of the system.
+# Important Notes:
+Account Creation Duration: When creating a new account, please allow approximately 30-40 seconds for the system to mint the 20 NFTs. During this time, your account will be set up with the necessary resources for testing.
+Product Pricing: When adding new products for testing, please set the token prices low (e.g., 2, 3, or 4 tokens). This will help ensure you can successfully make purchases with the initial 20 NFTs in your wallet.
+# How It Works:
+Create a New Account: Upon account creation, the system will mint 20 NFTs to your account. Please wait around 40 seconds for this process to complete.
+Check Your Balance: You can view your NFT balance in the header of your user dashboard, where you will see the initial 20 NFTs.
 
-Please remember to to install  npm install @dfinity/auth-client to install authication for internet identity login we will use on checkout.
 ### Corruption Combat Coders
 
 Welcome to the Decomm (decentralized e-commerice) project and to the internet computer development community.

@@ -106,7 +106,7 @@ actor class Main() {
         );
 
         await updateUserArray(user);
-        var init_with_tokens = await NFTact.initAccountWith(name,100);
+        var init_with_tokens = await NFTact.initAccountWith(name,20);
 
         return user;
     };

@@ -80,7 +80,7 @@
           DeComm is a platform that allows you to buy & sell Online with NFTs
         </p>
         <p class="opacity-75
-          ">After creating an account for the first Time, you get 100 NFTs to explore the platform
+          ">After creating an account for the first Time, you get 20 NFTs to explore the platform
           services
         </p>
         <p class="opacity-75
