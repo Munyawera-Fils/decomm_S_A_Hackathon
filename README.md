@@ -107,7 +107,7 @@ curl -fsSL cli.mops.one/install.sh | sh
 install the relevant packages needed to run both the backend and frontend for the first time by running:
 
 ```bash
-cd /Coding4Integrity-DeComm-Hackathon
+cd /decomm_S_A_Hackathon
 npm install
 ```
 
