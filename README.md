@@ -128,7 +128,7 @@ export NODE_OPTIONS="--max-old-space-size=4096"
 
 
 ```bash
-cd /Pretoria-South-Africa
+cd /decomm_S_A_Hackathon
 npm run startdfx
 npm run deploy
 npm run generate
@@ -147,7 +147,7 @@ If you want to test your project locally with Hot Module Replacement (HMR), you 
 npm run dev
 
 # If you are starting the project again and want HMR
-cd /Coding4Integrity-DeComm-Hackathon
+cd /decomm_S_A_Hackathon
 npm run startdfx
 npm run deploy
 npm run generate
